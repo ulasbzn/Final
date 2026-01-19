@@ -59,7 +59,7 @@ export default function App() {
   // --- GİRİŞ YAPMA ---
   const handleLogin = () => {
     if (!email || !password) {
-      Alert.alert("Hata", "Alanları doldur.");
+      Alert.alert("Error", "Fill in the fields.");
       return;
     }
     signInWithEmailAndPassword(auth as any, email, password)
@@ -67,11 +67,11 @@ export default function App() {
         if (userCredential.user.emailVerified) {
           setUser(userCredential.user);
         } else {
-          Alert.alert("Onay Gerekli ⚠️", "Önce mailindeki linke tıkla.");
+          Alert.alert("Approval Required ⚠️", "You should first try clicking the link in your email and logging in.");
           signOut(auth as any);
         }
       })
-      .catch((error: any) => Alert.alert("Hata", "Giriş başarısız."));
+      .catch((error: any) => Alert.alert("Eror", "Login failed."));
   };
 
   // --- GERİ SAYIM ---
