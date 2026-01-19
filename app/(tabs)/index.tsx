@@ -148,11 +148,22 @@ export default function App() {
             <TextInput style={[styles.input, {height: 80}]} placeholder="Notun..." placeholderTextColor="#333" value={note} onChangeText={setNote} multiline />
             <TextInput style={styles.input} placeholder="YYYY-MM-DDTHH:MM:SS" placeholderTextColor="#333" value={targetDate} onChangeText={setTargetDate} />
             <TouchableOpacity style={styles.startBtn} onPress={handleStart}>
-              <Text style={styles.btnText}>CREATE A REMINDER TİME </Text>
+              <Text style={styles.btnText}>CREATE A REMINDER TIME</Text>
             </TouchableOpacity>
           </ScrollView>
         ) : (
           <View style={styles.blackScreen}>
+            {/* KRONOMETRE EKRANINA EKLENEN ÇIKIŞ BUTONU */}
+            <TouchableOpacity 
+              onPress={() => {
+                setIsActive(false); 
+                setLockedTime(null);
+              }} 
+              style={styles.exitButton}
+            >
+              <Text style={{color: '#ff4444', fontWeight: 'bold'}}>Çıkış Yap</Text>
+            </TouchableOpacity>
+
             <Text style={styles.timerLabel}>KİLİTLENDİ</Text>
             <Text style={styles.bigTimer}>{formatTime(timeLeft)}</Text>
             <TouchableOpacity style={styles.hiddenCancel} onLongPress={() => { setIsActive(false); setLockedTime(null); }}>
@@ -174,6 +185,7 @@ const styles = StyleSheet.create({
   startBtn: { backgroundColor: '#fff', padding: 15, borderRadius: 10, alignItems: 'center' },
   btnText: { color: '#000', fontWeight: 'bold' },
   blackScreen: { flex: 1, backgroundColor: '#000', justifyContent: 'center', alignItems: 'center' },
+  exitButton: { position: 'absolute', top: 60, right: 30 },
   timerLabel: { color: '#444', letterSpacing: 2, marginBottom: 10 },
   bigTimer: { color: '#fff', fontSize: 40 },
   hiddenCancel: { marginTop: 50 },
