@@ -123,14 +123,14 @@ export default function App() {
   if (!user) {
     return (
       <View style={styles.authContainer}>
-        <Text style={styles.title}>Giriş Yap</Text>
+        <Text style={styles.cyberTitle}>CYBER REMINDER</Text>
         <TextInput style={styles.input} placeholder="E-posta" placeholderTextColor="#666" value={email} onChangeText={setEmail} autoCapitalize="none" />
         <TextInput style={styles.input} placeholder="Şifre" placeholderTextColor="#666" value={password} secureTextEntry onChangeText={setPassword} />
-        <TouchableOpacity style={styles.startBtn} onPress={handleLogin}>
-          <Text style={styles.btnText}>GİRİŞ YAP</Text>
+        <TouchableOpacity style={styles.neonBtn} onPress={handleLogin}>
+          <Text style={styles.neonBtnText}>GİRİŞ YAP</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={[styles.startBtn, {backgroundColor: '#111', marginTop: 15}]} onPress={handleSignUp}>
-          <Text style={[styles.btnText, {color: '#fff'}]}>HESAP OLUŞTUR</Text>
+        <TouchableOpacity style={[styles.neonBtn, {borderColor: '#ff00ff', marginTop: 15}]} onPress={handleSignUp}>
+          <Text style={[styles.neonBtnText, {color: '#ff00ff'}]}>HESAP OLUŞTUR</Text>
         </TouchableOpacity>
       </View>
     );
@@ -144,11 +144,11 @@ export default function App() {
             <TouchableOpacity onPress={() => signOut(auth as any)} style={{alignSelf: 'flex-end'}}>
                 <Text style={{color: '#ff4444', fontWeight: 'bold'}}>Çıkış Yap</Text>
             </TouchableOpacity>
-            <Text style={styles.title}>Zamanlayıcı</Text>
-            <TextInput style={[styles.input, {height: 80}]} placeholder="Notun..." placeholderTextColor="#333" value={note} onChangeText={setNote} multiline />
-            <TextInput style={styles.input} placeholder="YYYY-MM-DDTHH:MM:SS" placeholderTextColor="#333" value={targetDate} onChangeText={setTargetDate} />
-            <TouchableOpacity style={styles.startBtn} onPress={handleStart}>
-              <Text style={styles.btnText}>CREATE A REMINDER TIME</Text>
+            <Text style={styles.cyberTitle}>SET TIME</Text>
+            <TextInput style={[styles.input, {height: 80}]} placeholder="Notun..." placeholderTextColor="#666" value={note} onChangeText={setNote} multiline />
+            <TextInput style={styles.input} placeholder="YYYY-MM-DDTHH:MM:SS" placeholderTextColor="#666" value={targetDate} onChangeText={setTargetDate} />
+            <TouchableOpacity style={styles.neonBtn} onPress={handleStart}>
+              <Text style={styles.neonBtnText}>CREATE</Text>
             </TouchableOpacity>
           </ScrollView>
         ) : (
@@ -180,14 +180,17 @@ const styles = StyleSheet.create({
   authContainer: { flex: 1, backgroundColor: '#000', justifyContent: 'center', padding: 30 },
   fullScreen: { flex: 1, backgroundColor: '#000' },
   setupBox: { padding: 30, paddingTop: 60 },
-  title: { color: '#fff', fontSize: 24, fontWeight: 'bold', textAlign: 'center', marginBottom: 30 },
+  cyberTitle: { color: '#00ffff', fontSize: 28, fontWeight: 'bold', textAlign: 'center', marginBottom: 30, letterSpacing: 2 },
   input: { backgroundColor: '#0A0A0A', color: '#fff', padding: 15, borderRadius: 10, marginBottom: 15, borderWidth: 1, borderColor: '#222' },
-  startBtn: { backgroundColor: '#fff', padding: 15, borderRadius: 10, alignItems: 'center' },
-  btnText: { color: '#000', fontWeight: 'bold' },
+  neonBtn: { 
+    backgroundColor: 'transparent', padding: 15, borderRadius: 10, alignItems: 'center', 
+    borderWidth: 2, borderColor: '#00ffff'
+  },
+  neonBtnText: { color: '#00ffff', fontWeight: 'bold', letterSpacing: 1 },
   blackScreen: { flex: 1, backgroundColor: '#000', justifyContent: 'center', alignItems: 'center' },
   exitButton: { position: 'absolute', top: 60, right: 30 },
-  timerLabel: { color: '#444', letterSpacing: 2, marginBottom: 10 },
-  bigTimer: { color: '#fff', fontSize: 40 },
+  timerLabel: { color: '#00ffff', letterSpacing: 2, marginBottom: 10 },
+  bigTimer: { color: '#fff', fontSize: 40, fontWeight: '200' },
   hiddenCancel: { marginTop: 50 },
   cancelHint: { color: '#111' }
 });
