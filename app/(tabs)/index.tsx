@@ -4,22 +4,21 @@ import {
   StyleSheet, Text, TextInput, TouchableOpacity, Vibration, View
 } from 'react-native';
 
-// FIREBASE BAĞLANTISI (Doğru yol ayarlandı)
+// FIREBASE BAĞLANTISI VE ARAÇLAR
 import {
   createUserWithEmailAndPassword,
   onAuthStateChanged,
+  sendEmailVerification,
   signInWithEmailAndPassword,
   signOut
 } from 'firebase/auth';
 import { auth } from '../../hooks/firebaseConfig';
 
 export default function App() {
-  // --- KULLANICI DURUMU ---
+  // --- STATE TANIMLAMALARI ---
   const [user, setUser] = useState<any>(null);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-
-  // --- ZAMANLAYICI DURUMLARI ---
   const [note, setNote] = useState<string>('');
   const [targetDate, setTargetDate] = useState<string>('2026-01-25T10:00:00');
   const [lockedNote, setLockedNote] = useState<string>('');
@@ -27,37 +26,59 @@ export default function App() {
   const [isActive, setIsActive] = useState<boolean>(false);
   const [timeLeft, setTimeLeft] = useState<number>(0);
 
-  // Uygulama açıldığında giriş yapılmış mı kontrol et
+  // --- OTURUM KONTROLÜ ---
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser);
+      if (currentUser) {
+        if (currentUser.emailVerified) {
+          setUser(currentUser);
+        } else {
+          // Onaylanmamışsa içeri alma
+          setUser(null);
+        }
+      } else {
+        setUser(null);
+      }
     });
-    return unsubscribe;
+    return () => unsubscribe();
   }, []);
 
-  // KAYIT OLMA
+  // --- KAYIT OL VE LİNK GÖNDER ---
   const handleSignUp = () => {
     if (!email || !password) {
-      Alert.alert("Hata", "Lütfen tüm alanları doldurun.");
+      Alert.alert("Hata", "E-posta ve şifre girin.");
       return;
     }
     createUserWithEmailAndPassword(auth, email, password)
-      .then(() => Alert.alert("Başarılı", "Hesabınız oluşturuldu!"))
-      .catch((error: any) => Alert.alert("Kayıt Hatası", error.message));
+      .then((userCredential) => {
+        sendEmailVerification(userCredential.user)
+          .then(() => {
+            Alert.alert("Onay Linki Yollandı!", "Mailini kontrol et ve linke tıkla, sonra giriş yap.");
+            signOut(auth);
+          });
+      })
+      .catch((error: any) => Alert.alert("Hata", error.message));
   };
 
-  // GİRİŞ YAPMA
+  // --- GİRİŞ YAP ---
   const handleLogin = () => {
     if (!email || !password) {
-      Alert.alert("Hata", "Lütfen tüm alanları doldurun.");
+      Alert.alert("Hata", "Alanları doldur.");
       return;
     }
     signInWithEmailAndPassword(auth, email, password)
-      .then(() => console.log("Giriş başarılı"))
-      .catch((error: any) => Alert.alert("Giriş Hatası", error.message));
+      .then((userCredential) => {
+        if (userCredential.user.emailVerified) {
+          setUser(userCredential.user);
+        } else {
+          Alert.alert("Onay Gerekli", "Önce mailindeki linke tıklayıp hesabını onayla.");
+          signOut(auth);
+        }
+      })
+      .catch((error: any) => Alert.alert("Hata", "Giriş yapılamadı."));
   };
 
-  // GERİ SAYIM MANTIĞI
+  // --- GERİ SAYIM SAYACI ---
   useEffect(() => {
     let sayac: any = null;
     if (isActive && lockedTime !== null) {
@@ -83,8 +104,8 @@ export default function App() {
   const handleStart = () => {
     const hedef = new Date(targetDate).getTime();
     const suan = new Date().getTime();
-    if (!note.trim()) { Alert.alert("Hata", "Mesaj yazmalısın!"); return; }
-    if (isNaN(hedef) || hedef <= suan) { Alert.alert("Hata", "İleri bir tarih gir!"); return; }
+    if (!note.trim()) { Alert.alert("Hata", "Mesaj yaz!"); return; }
+    if (isNaN(hedef) || hedef <= suan) { Alert.alert("Hata", "Gelecek bir tarih gir!"); return; }
     setLockedNote(note);
     setLockedTime(hedef);
     setNote('');
@@ -101,84 +122,44 @@ export default function App() {
     return `${d}g ${h < 10 ? '0'+h : h}:${m < 10 ? '0'+m : m}:${s < 10 ? '0'+s : s}`;
   };
 
-  // --- EKRANLAR ---
-
-  // 1. GİRİŞ YAPILMAMIŞSA GÖSTERİLECEK EKRAN (Auth)
+  // --- EKRAN GÖRÜNÜMLERİ ---
   if (!user) {
     return (
       <View style={styles.authContainer}>
         <Text style={styles.title}>Hoş Geldiniz</Text>
-        <TextInput 
-          style={styles.input} 
-          placeholder="E-posta" 
-          placeholderTextColor="#666" 
-          value={email} 
-          onChangeText={setEmail} 
-          autoCapitalize="none"
-        />
-        <TextInput 
-          style={styles.input} 
-          placeholder="Şifre" 
-          placeholderTextColor="#666" 
-          value={password} 
-          secureTextEntry 
-          onChangeText={setPassword} 
-        />
+        <TextInput style={styles.input} placeholder="E-posta" placeholderTextColor="#666" value={email} onChangeText={setEmail} autoCapitalize="none" />
+        <TextInput style={styles.input} placeholder="Şifre" placeholderTextColor="#666" value={password} secureTextEntry onChangeText={setPassword} />
         <TouchableOpacity style={styles.startBtn} onPress={handleLogin}>
           <Text style={styles.btnText}>GİRİŞ YAP</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={[styles.startBtn, {backgroundColor: '#111', marginTop: 15, borderWidth: 1, borderColor: '#333'}]} onPress={handleSignUp}>
+        <TouchableOpacity style={[styles.startBtn, {backgroundColor: '#111', marginTop: 15}]} onPress={handleSignUp}>
           <Text style={[styles.btnText, {color: '#fff'}]}>HESAP OLUŞTUR</Text>
         </TouchableOpacity>
       </View>
     );
   }
 
-  // 2. GİRİŞ YAPILMIŞSA GÖSTERİLECEK ANA EKRAN
   return (
-    <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
+    <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
       <View style={styles.fullScreen}>
         {!isActive ? (
           <ScrollView contentContainerStyle={styles.setupBox}>
             <TouchableOpacity onPress={() => signOut(auth)} style={{alignSelf: 'flex-end'}}>
-                <Text style={{color: '#ff4444', fontWeight: 'bold', marginBottom: 20}}>Çıkış Yap</Text>
+                <Text style={{color: '#ff4444', fontWeight: 'bold'}}>Çıkış Yap</Text>
             </TouchableOpacity>
-            
-            <Text style={styles.title}>Gizli Not Zamanlayıcı</Text>
-            
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>MESAJINIZ</Text>
-              <TextInput 
-                style={[styles.input, {height: 100}]} 
-                placeholder="Kilitlemek istediğiniz notu yazın..." 
-                placeholderTextColor="#333" 
-                value={note} 
-                onChangeText={setNote} 
-                multiline={true} 
-              />
-            </View>
-
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>AÇILIŞ TARİHİ (YYYY-MM-DDTHH:MM:SS)</Text>
-              <TextInput 
-                style={styles.input} 
-                placeholder="2026-01-25T12:00:00" 
-                placeholderTextColor="#333" 
-                value={targetDate} 
-                onChangeText={setTargetDate} 
-              />
-            </View>
-
+            <Text style={styles.title}>Zamanlayıcı</Text>
+            <TextInput style={[styles.input, {height: 80}]} placeholder="Notun..." placeholderTextColor="#333" value={note} onChangeText={setNote} multiline />
+            <TextInput style={styles.input} placeholder="YYYY-MM-DDTHH:MM:SS" placeholderTextColor="#333" value={targetDate} onChangeText={setTargetDate} />
             <TouchableOpacity style={styles.startBtn} onPress={handleStart}>
-              <Text style={styles.btnText}>NOTU ZAMANA MÜHÜRLE</Text>
+              <Text style={styles.btnText}>KİLİTLE</Text>
             </TouchableOpacity>
           </ScrollView>
         ) : (
           <View style={styles.blackScreen}>
-            <Text style={styles.timerLabel}>NOT KİLİTLENDİ</Text>
+            <Text style={styles.timerLabel}>KİLİTLENDİ</Text>
             <Text style={styles.bigTimer}>{formatTime(timeLeft)}</Text>
             <TouchableOpacity style={styles.hiddenCancel} onLongPress={() => { setIsActive(false); setLockedTime(null); }}>
-              <Text style={styles.cancelHint}>İptal etmek için basılı tutun</Text>
+              <Text style={styles.cancelHint}>İptal (Basılı tut)</Text>
             </TouchableOpacity>
           </View>
         )}
@@ -190,16 +171,14 @@ export default function App() {
 const styles = StyleSheet.create({
   authContainer: { flex: 1, backgroundColor: '#000', justifyContent: 'center', padding: 30 },
   fullScreen: { flex: 1, backgroundColor: '#000' },
-  setupBox: { padding: 30, paddingTop: 40 },
-  title: { color: '#fff', fontSize: 26, fontWeight: 'bold', textAlign: 'center', marginBottom: 40 },
-  inputGroup: { marginBottom: 20 },
-  label: { color: '#444', fontSize: 10, fontWeight: 'bold', marginBottom: 5, letterSpacing: 1 },
-  input: { backgroundColor: '#0A0A0A', color: '#fff', padding: 18, borderRadius: 12, fontSize: 16, borderWidth: 1, borderColor: '#222', marginBottom: 10 },
-  startBtn: { backgroundColor: '#fff', padding: 20, borderRadius: 12, alignItems: 'center', marginTop: 10 },
-  btnText: { color: '#000', fontWeight: 'bold', fontSize: 16 },
-  blackScreen: { flex: 1, backgroundColor: '#000', alignItems: 'center', justifyContent: 'center' },
-  timerLabel: { color: '#333', fontSize: 14, fontWeight: 'bold', letterSpacing: 4, marginBottom: 20 },
-  bigTimer: { color: '#fff', fontSize: 45, fontWeight: '200' },
-  hiddenCancel: { marginTop: 100, padding: 20 },
-  cancelHint: { color: '#111', fontSize: 12 }
+  setupBox: { padding: 30, paddingTop: 50 },
+  title: { color: '#fff', fontSize: 24, fontWeight: 'bold', textAlign: 'center', marginBottom: 30 },
+  input: { backgroundColor: '#111', color: '#fff', padding: 15, borderRadius: 10, marginBottom: 15, borderWidth: 1, borderColor: '#333' },
+  startBtn: { backgroundColor: '#fff', padding: 15, borderRadius: 10, alignItems: 'center' },
+  btnText: { color: '#000', fontWeight: 'bold' },
+  blackScreen: { flex: 1, backgroundColor: '#000', justifyContent: 'center', alignItems: 'center' },
+  timerLabel: { color: '#444', letterSpacing: 2, marginBottom: 10 },
+  bigTimer: { color: '#fff', fontSize: 40, fontWeight: '200' },
+  hiddenCancel: { marginTop: 50 },
+  cancelHint: { color: '#222' }
 });

@@ -1,5 +1,10 @@
-import { initializeApp } from "firebase/app";
-import { getAuth } from "firebase/auth"; // Giriş ve Kayıt sistemi için bu lazım
+import { getApp, getApps, initializeApp } from "firebase/app";
+// Auth için gerekli özel importlar
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import {
+    getReactNativePersistence,
+    initializeAuth
+} from 'firebase/auth';
 
 const firebaseConfig = {
   apiKey: "AIzaSyCwV0El0CE1x07eHR-jfqkZ02Mf95quZiE",
@@ -11,8 +16,10 @@ const firebaseConfig = {
   measurementId: "G-Z0VQLF4VF0"
 };
 
-// Firebase'i başlat
-const app = initializeApp(firebaseConfig);
+// 1. Firebase'i başlat (veya olanı al)
+const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
 
-// Giriş/Kayıt (Auth) özelliğini dışarı aktar
-export const auth = getAuth(app);
+// 2. Auth'u Expo'ya özel şekilde başlat (Hata veren yerin çözümü)
+export const auth = initializeAuth(app, {
+  persistence: getReactNativePersistence(AsyncStorage)
+});
