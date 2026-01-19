@@ -42,7 +42,7 @@ export default function App() {
   // --- KAYIT VE MAİL GÖNDERME ---
   const handleSignUp = () => {
     if (!email || !password) {
-      Alert.alert("Hata", "E-posta ve şifre girin.");
+      Alert.alert("Error", "Enter email and password.");
       return;
     }
     createUserWithEmailAndPassword(auth as any, email, password)
@@ -86,7 +86,7 @@ export default function App() {
           clearInterval(sayac);
           setIsActive(false);
           if (Platform.OS !== 'web') Vibration.vibrate([500, 500, 500]);
-          Alert.alert("🚨 MESAJ AÇILDI!", lockedNote);
+          Alert.alert("🚨 MESAJ AÇILDI! 🚨", lockedNote);
           setLockedNote('');
           setLockedTime(null);
         } else {
@@ -100,7 +100,7 @@ export default function App() {
   const handleStart = () => {
     const hedef = new Date(targetDate).getTime();
     if (!note.trim() || isNaN(hedef)) {
-      Alert.alert("Hata", "Not yaz ve tarih gir.");
+      Alert.alert("Eror", "Write a note and set a valid date.");
       return;
     }
     setLockedNote(note);
