@@ -4,7 +4,7 @@ import {
   StyleSheet, Text, TextInput, TouchableOpacity, Vibration, View
 } from 'react-native';
 
-// FIREBASE BAĞLANTISI VE ARAÇLAR
+// FIREBASE ARAÇLARI
 import {
   createUserWithEmailAndPassword,
   onAuthStateChanged,
@@ -17,8 +17,9 @@ import { auth } from '../../hooks/firebaseConfig';
 export default function App() {
   // --- STATE TANIMLAMALARI ---
   const [user, setUser] = useState<any>(null);
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState<string>('');
+  const [password, setPassword] = useState<string>('');
+  
   const [note, setNote] = useState<string>('');
   const [targetDate, setTargetDate] = useState<string>('2026-01-25T10:00:00');
   const [lockedNote, setLockedNote] = useState<string>('');
@@ -28,14 +29,9 @@ export default function App() {
 
   // --- OTURUM KONTROLÜ ---
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      if (currentUser) {
-        if (currentUser.emailVerified) {
-          setUser(currentUser);
-        } else {
-          // Onaylanmamışsa içeri alma
-          setUser(null);
-        }
+    const unsubscribe = onAuthStateChanged(auth as any, (currentUser) => {
+      if (currentUser && currentUser.emailVerified) {
+        setUser(currentUser);
       } else {
         setUser(null);
       }
@@ -43,42 +39,42 @@ export default function App() {
     return () => unsubscribe();
   }, []);
 
-  // --- KAYIT OL VE LİNK GÖNDER ---
+  // --- KAYIT VE MAİL GÖNDERME ---
   const handleSignUp = () => {
     if (!email || !password) {
       Alert.alert("Hata", "E-posta ve şifre girin.");
       return;
     }
-    createUserWithEmailAndPassword(auth, email, password)
+    createUserWithEmailAndPassword(auth as any, email, password)
       .then((userCredential) => {
         sendEmailVerification(userCredential.user)
           .then(() => {
-            Alert.alert("Onay Linki Yollandı!", "Mailini kontrol et ve linke tıkla, sonra giriş yap.");
-            signOut(auth);
+            Alert.alert("Onay Yollandı ✅", "Mail kutunu kontrol et.");
+            signOut(auth as any);
           });
       })
       .catch((error: any) => Alert.alert("Hata", error.message));
   };
 
-  // --- GİRİŞ YAP ---
+  // --- GİRİŞ YAPMA ---
   const handleLogin = () => {
     if (!email || !password) {
       Alert.alert("Hata", "Alanları doldur.");
       return;
     }
-    signInWithEmailAndPassword(auth, email, password)
+    signInWithEmailAndPassword(auth as any, email, password)
       .then((userCredential) => {
         if (userCredential.user.emailVerified) {
           setUser(userCredential.user);
         } else {
-          Alert.alert("Onay Gerekli", "Önce mailindeki linke tıklayıp hesabını onayla.");
-          signOut(auth);
+          Alert.alert("Onay Gerekli ⚠️", "Önce mailindeki linke tıkla.");
+          signOut(auth as any);
         }
       })
-      .catch((error: any) => Alert.alert("Hata", "Giriş yapılamadı."));
+      .catch((error: any) => Alert.alert("Hata", "Giriş başarısız."));
   };
 
-  // --- GERİ SAYIM SAYACI ---
+  // --- GERİ SAYIM ---
   useEffect(() => {
     let sayac: any = null;
     if (isActive && lockedTime !== null) {
@@ -103,9 +99,10 @@ export default function App() {
 
   const handleStart = () => {
     const hedef = new Date(targetDate).getTime();
-    const suan = new Date().getTime();
-    if (!note.trim()) { Alert.alert("Hata", "Mesaj yaz!"); return; }
-    if (isNaN(hedef) || hedef <= suan) { Alert.alert("Hata", "Gelecek bir tarih gir!"); return; }
+    if (!note.trim() || isNaN(hedef)) {
+      Alert.alert("Hata", "Not yaz ve tarih gir.");
+      return;
+    }
     setLockedNote(note);
     setLockedTime(hedef);
     setNote('');
@@ -122,11 +119,11 @@ export default function App() {
     return `${d}g ${h < 10 ? '0'+h : h}:${m < 10 ? '0'+m : m}:${s < 10 ? '0'+s : s}`;
   };
 
-  // --- EKRAN GÖRÜNÜMLERİ ---
+  // --- GÖRÜNÜM ---
   if (!user) {
     return (
       <View style={styles.authContainer}>
-        <Text style={styles.title}>Hoş Geldiniz</Text>
+        <Text style={styles.title}>Giriş Yap</Text>
         <TextInput style={styles.input} placeholder="E-posta" placeholderTextColor="#666" value={email} onChangeText={setEmail} autoCapitalize="none" />
         <TextInput style={styles.input} placeholder="Şifre" placeholderTextColor="#666" value={password} secureTextEntry onChangeText={setPassword} />
         <TouchableOpacity style={styles.startBtn} onPress={handleLogin}>
@@ -144,14 +141,14 @@ export default function App() {
       <View style={styles.fullScreen}>
         {!isActive ? (
           <ScrollView contentContainerStyle={styles.setupBox}>
-            <TouchableOpacity onPress={() => signOut(auth)} style={{alignSelf: 'flex-end'}}>
+            <TouchableOpacity onPress={() => signOut(auth as any)} style={{alignSelf: 'flex-end'}}>
                 <Text style={{color: '#ff4444', fontWeight: 'bold'}}>Çıkış Yap</Text>
             </TouchableOpacity>
             <Text style={styles.title}>Zamanlayıcı</Text>
             <TextInput style={[styles.input, {height: 80}]} placeholder="Notun..." placeholderTextColor="#333" value={note} onChangeText={setNote} multiline />
             <TextInput style={styles.input} placeholder="YYYY-MM-DDTHH:MM:SS" placeholderTextColor="#333" value={targetDate} onChangeText={setTargetDate} />
             <TouchableOpacity style={styles.startBtn} onPress={handleStart}>
-              <Text style={styles.btnText}>KİLİTLE</Text>
+              <Text style={styles.btnText}>MÜHÜRLE</Text>
             </TouchableOpacity>
           </ScrollView>
         ) : (
@@ -171,14 +168,14 @@ export default function App() {
 const styles = StyleSheet.create({
   authContainer: { flex: 1, backgroundColor: '#000', justifyContent: 'center', padding: 30 },
   fullScreen: { flex: 1, backgroundColor: '#000' },
-  setupBox: { padding: 30, paddingTop: 50 },
+  setupBox: { padding: 30, paddingTop: 60 },
   title: { color: '#fff', fontSize: 24, fontWeight: 'bold', textAlign: 'center', marginBottom: 30 },
-  input: { backgroundColor: '#111', color: '#fff', padding: 15, borderRadius: 10, marginBottom: 15, borderWidth: 1, borderColor: '#333' },
+  input: { backgroundColor: '#0A0A0A', color: '#fff', padding: 15, borderRadius: 10, marginBottom: 15, borderWidth: 1, borderColor: '#222' },
   startBtn: { backgroundColor: '#fff', padding: 15, borderRadius: 10, alignItems: 'center' },
   btnText: { color: '#000', fontWeight: 'bold' },
   blackScreen: { flex: 1, backgroundColor: '#000', justifyContent: 'center', alignItems: 'center' },
   timerLabel: { color: '#444', letterSpacing: 2, marginBottom: 10 },
-  bigTimer: { color: '#fff', fontSize: 40, fontWeight: '200' },
+  bigTimer: { color: '#fff', fontSize: 40 },
   hiddenCancel: { marginTop: 50 },
-  cancelHint: { color: '#222' }
+  cancelHint: { color: '#111' }
 });
