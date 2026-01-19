@@ -188,9 +188,9 @@ const styles = StyleSheet.create({
   },
   neonBtnText: { color: '#00ffff', fontWeight: 'bold', letterSpacing: 1 },
   blackScreen: { flex: 1, backgroundColor: '#000', justifyContent: 'center', alignItems: 'center' },
-  exitButton: { position: 'absolute', top: 60, right: 30 },
+  exitButton: { position: 'absolute', top: 65, right: 30 },
   timerLabel: { color: '#00ffff', letterSpacing: 2, marginBottom: 10 },
-  bigTimer: { color: '#fff', fontSize: 40, fontWeight: '200' },
+  bigTimer: { color: '#fff', fontSize: 41, fontWeight: '200' },
   hiddenCancel: { marginTop: 50 },
   cancelHint: { color: '#111' }
 });
