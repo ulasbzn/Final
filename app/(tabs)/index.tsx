@@ -148,7 +148,7 @@ export default function App() {
             <TextInput style={[styles.input, {height: 80}]} placeholder="Notun..." placeholderTextColor="#333" value={note} onChangeText={setNote} multiline />
             <TextInput style={styles.input} placeholder="YYYY-MM-DDTHH:MM:SS" placeholderTextColor="#333" value={targetDate} onChangeText={setTargetDate} />
             <TouchableOpacity style={styles.startBtn} onPress={handleStart}>
-              <Text style={styles.btnText}>MÜHÜRLE</Text>
+              <Text style={styles.btnText}>CREATE A REMINDER TİME </Text>
             </TouchableOpacity>
           </ScrollView>
         ) : (
